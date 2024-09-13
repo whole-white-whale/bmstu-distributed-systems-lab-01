@@ -18,6 +18,7 @@ import PersonResponse
 server :: Connection -> Server API
 server connection = listPersons connection
   :<|> createPerson connection
+  :<|> editPerson connection
 
 listPersons :: Connection -> Handler [PersonResponse]
 listPersons connection = do
@@ -46,3 +47,22 @@ createPerson connection person = do
     )
 
   return $ addHeader ("/api/v1/persons/" <> show personId) NoContent
+
+editPerson :: Connection -> Int -> PersonRequest -> Handler PersonResponse
+editPerson connection personId person = do
+  _ <- liftIO $ execute connection
+    "UPDATE persons SET name = ?, age = ?, address = ?, work = ? WHERE id = ?"
+    ( person.name
+    , person.age
+    , person.address
+    , person.work
+    , personId
+    )
+
+  return $ PersonResponse
+    { id = personId
+    , name = person.name
+    , age = person.age
+    , address = person.address
+    , work = person.work
+    }

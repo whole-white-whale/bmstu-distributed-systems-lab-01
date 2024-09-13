@@ -11,12 +11,17 @@ import PersonResponse
 type API = "api" :> "v1" :> "persons" :>
   ( ListPersons
   :<|> CreatePerson
+  :<|> EditPerson
   )
 
 type ListPersons = Verb 'GET 200 '[JSON] [PersonResponse]
 
 type CreatePerson = ReqBody '[JSON] PersonRequest
   :> Verb 'POST 201 '[JSON] (Headers '[Header "Location" String] NoContent)
+
+type EditPerson = Capture "id" Int
+  :> ReqBody '[JSON] PersonRequest
+  :> Verb 'PATCH 200 '[JSON] PersonResponse
 
 api :: Proxy API
 api = Proxy
