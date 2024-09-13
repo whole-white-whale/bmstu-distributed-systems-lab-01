@@ -27,10 +27,12 @@ library
   exposed-modules:
       API
       Connection
+      Context
       ErrorResponse
       PersonRequest
       PersonResponse
       Server
+      ValidationErrorResponse
   other-modules:
       Paths_personenregistrirungssystem
   autogen-modules:
@@ -42,6 +44,7 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
     , postgresql-simple
     , servant-server
     , warp
@@ -60,6 +63,7 @@ executable personenregistrirungssystem-server
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
     , personenregistrirungssystem
     , postgresql-simple
     , servant-server
@@ -80,6 +84,7 @@ test-suite personenregistrirungssystem-test
       aeson
     , base >=4.7 && <5
     , bytestring
+    , containers
     , personenregistrirungssystem
     , postgresql-simple
     , servant-server

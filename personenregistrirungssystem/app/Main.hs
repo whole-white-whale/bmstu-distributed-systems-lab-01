@@ -7,6 +7,7 @@ import Servant
 
 import API
 import Connection
+import Context
 import Server
 
 main :: IO ()
@@ -14,4 +15,4 @@ main = do
   connectionString <- getEnv "CONNECTION_STRING"
   connection <- connect connectionString
 
-  run 8080 . serve api $ server connection
+  run 8080 . serveWithContext api context $ server connection

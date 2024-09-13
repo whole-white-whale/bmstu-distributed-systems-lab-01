@@ -62,6 +62,7 @@ getPerson connection personId = do
     [] -> do
       throwError $ err404
         { errBody = encode $ ErrorResponse "The person does not exist!"
+        , errHeaders = [("Content-Type", "application/json")]
         }
 
     ((personName, personAge, personAddress, personWork) : _) -> do
@@ -88,6 +89,7 @@ editPerson connection personId person = do
     0 -> do
       throwError $ err404
         { errBody = encode $ ErrorResponse "The person does not exist!"
+        , errHeaders = [("Content-Type", "application/json")]
         }
 
     _ -> do
