@@ -22,6 +22,7 @@ server connection = listPersons connection
   :<|> createPerson connection
   :<|> getPerson connection
   :<|> editPerson connection
+  :<|> deletePerson connection
 
 listPersons :: Connection -> Handler [PersonResponse]
 listPersons connection = do
@@ -97,3 +98,11 @@ editPerson connection personId person = do
         , address = person.address
         , work = person.work
         }
+
+deletePerson :: Connection -> Int -> Handler NoContent
+deletePerson connection personId = do
+  _ <- liftIO $ execute connection
+    "DELETE FROM persons WHERE id = ?"
+    [personId]
+
+  return NoContent

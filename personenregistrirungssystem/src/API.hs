@@ -13,6 +13,7 @@ type API = "api" :> "v1" :> "persons" :>
   :<|> CreatePerson
   :<|> GetPerson
   :<|> EditPerson
+  :<|> DeletePerson
   )
 
 type ListPersons = Verb 'GET 200 '[JSON] [PersonResponse]
@@ -26,6 +27,9 @@ type GetPerson = Capture "id" Int
 type EditPerson = Capture "id" Int
   :> ReqBody '[JSON] PersonRequest
   :> Verb 'PATCH 200 '[JSON] PersonResponse
+
+type DeletePerson = Capture "id" Int
+  :> Verb 'DELETE 204 '[JSON] NoContent
 
 api :: Proxy API
 api = Proxy
