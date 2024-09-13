@@ -8,16 +8,19 @@ module Server (server) where
 
 import Control.Monad.IO.Class
 
+import Data.Aeson
 import Database.PostgreSQL.Simple
 import Servant
 
 import API
+import ErrorResponse
 import PersonRequest
 import PersonResponse
 
 server :: Connection -> Server API
 server connection = listPersons connection
   :<|> createPerson connection
+  :<|> getPerson connection
   :<|> editPerson connection
 
 listPersons :: Connection -> Handler [PersonResponse]
@@ -48,9 +51,30 @@ createPerson connection person = do
 
   return $ addHeader ("/api/v1/persons/" <> show personId) NoContent
 
+getPerson :: Connection -> Int -> Handler PersonResponse
+getPerson connection personId = do
+  response <- liftIO $ query connection
+    "SELECT name, age, address, work FROM persons WHERE id = ?"
+    [personId]
+
+  case response of
+    [] -> do
+      throwError $ err404
+        { errBody = encode $ ErrorResponse "The person does not exist!"
+        }
+
+    ((personName, personAge, personAddress, personWork) : _) -> do
+      return $ PersonResponse
+        { id = personId
+        , name = personName
+        , age = personAge
+        , address = personAddress
+        , work = personWork
+        }
+
 editPerson :: Connection -> Int -> PersonRequest -> Handler PersonResponse
 editPerson connection personId person = do
-  _ <- liftIO $ execute connection
+  response <- liftIO $ execute connection
     "UPDATE persons SET name = ?, age = ?, address = ?, work = ? WHERE id = ?"
     ( person.name
     , person.age
@@ -59,10 +83,17 @@ editPerson connection personId person = do
     , personId
     )
 
-  return $ PersonResponse
-    { id = personId
-    , name = person.name
-    , age = person.age
-    , address = person.address
-    , work = person.work
-    }
+  case response of
+    0 -> do
+      throwError $ err404
+        { errBody = encode $ ErrorResponse "The person does not exist!"
+        }
+
+    _ -> do
+      return $ PersonResponse
+        { id = personId
+        , name = person.name
+        , age = person.age
+        , address = person.address
+        , work = person.work
+        }

@@ -27,6 +27,7 @@ library
   exposed-modules:
       API
       Connection
+      ErrorResponse
       PersonRequest
       PersonResponse
       Server
