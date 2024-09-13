@@ -25,7 +25,11 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      API
+      Connection
+      PersonRequest
+      PersonResponse
+      Server
   other-modules:
       Paths_personenregistrirungssystem
   autogen-modules:
@@ -34,10 +38,15 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , postgresql-simple
+    , servant-server
+    , warp
   default-language: Haskell2010
 
-executable personenregistrirungssystem-exe
+executable personenregistrirungssystem-server
   main-is: Main.hs
   other-modules:
       Paths_personenregistrirungssystem
@@ -47,8 +56,13 @@ executable personenregistrirungssystem-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , personenregistrirungssystem
+    , postgresql-simple
+    , servant-server
+    , warp
   default-language: Haskell2010
 
 test-suite personenregistrirungssystem-test
@@ -62,6 +76,11 @@ test-suite personenregistrirungssystem-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , personenregistrirungssystem
+    , postgresql-simple
+    , servant-server
+    , warp
   default-language: Haskell2010
