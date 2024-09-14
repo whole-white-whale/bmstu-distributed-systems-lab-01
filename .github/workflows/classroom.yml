@@ -15,7 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      # TODO build, test and deploy project
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.4.8"
+          enable-stack: true
+          stack-version: "3.1.1"
+
+      - name: Build
+        run: |
+          stack build
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
@@ -35,6 +44,6 @@ jobs:
           google_token: ${{secrets.GOOGLE_API_KEY}}
           sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
           homework_number: 1
-          user_column: 'D'
-          column_offset: 'F'
+          user_column: "D"
+          column_offset: "F"
           mark: "'+"
