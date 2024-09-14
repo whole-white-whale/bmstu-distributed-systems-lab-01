@@ -46,6 +46,17 @@ jobs:
           push: true
           tags: "wholewhitewhale/personenregistrirungssystem:latest"
 
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_KEY }}
+          script: >-
+            cd bmstu-distributed-systems-lab-01 &&
+            docker compose pull &&
+            docker compose up -d
+
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
