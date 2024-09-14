@@ -23,6 +23,7 @@ jobs:
           stack-version: "3.1.1"
 
       - name: Build
+        working-directory: "./personenregistrirungssystem"
         run: |
           stack build
 
