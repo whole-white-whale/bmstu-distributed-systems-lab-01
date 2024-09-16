@@ -76,8 +76,8 @@ getPerson connection personId = do
 
 editPerson :: Connection -> Int -> PersonRequest -> Handler PersonResponse
 editPerson connection personId person = do
-  response <- liftIO $ execute connection
-    "UPDATE persons SET name = COALESCE(?, name), age = COALESCE(?, age), address = COALESCE(?, address), work = COALESCE(?, work) WHERE id = ?"
+  response <- liftIO $ query connection
+    "UPDATE persons SET name = COALESCE(?, name), age = COALESCE(?, age), address = COALESCE(?, address), work = COALESCE(?, work) WHERE id = ? RETURNING name, age, address, work"
     ( person.name
     , person.age
     , person.address
@@ -86,19 +86,19 @@ editPerson connection personId person = do
     )
 
   case response of
-    0 -> do
+    [] -> do
       throwError $ err404
         { errBody = encode $ ErrorResponse "The person does not exist!"
         , errHeaders = [("Content-Type", "application/json")]
         }
 
-    _ -> do
+    ((personName, personAge, personAddress, personWork) : _) -> do
       return $ PersonResponse
         { id = personId
-        , name = person.name
-        , age = person.age
-        , address = person.address
-        , work = person.work
+        , name = personName
+        , age = personAge
+        , address = personAddress
+        , work = personWork
         }
 
 deletePerson :: Connection -> Int -> Handler NoContent
