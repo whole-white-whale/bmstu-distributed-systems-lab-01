@@ -77,7 +77,7 @@ getPerson connection personId = do
 editPerson :: Connection -> Int -> PersonRequest -> Handler PersonResponse
 editPerson connection personId person = do
   response <- liftIO $ execute connection
-    "UPDATE persons SET name = ?, age = ?, address = ?, work = ? WHERE id = ?"
+    "UPDATE persons SET name = COALESCE(?, name), age = COALESCE(?, age), address = COALESCE(?, address), work = COALESCE(?, work) WHERE id = ?"
     ( person.name
     , person.age
     , person.address
