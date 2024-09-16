@@ -54,8 +54,10 @@ jobs:
           key: ${{ secrets.PRODUCTION_KEY }}
           script: >-
             cd bmstu-distributed-systems-lab-01 &&
+            docker system prune --all --force &&
             docker compose pull &&
-            docker compose up -d
+            docker compose up -d &&
+            sleep 10
 
       - name: Run API Tests
         uses: matt-ball/newman-action@master
