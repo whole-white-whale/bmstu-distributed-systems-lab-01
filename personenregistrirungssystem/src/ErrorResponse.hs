@@ -7,6 +7,6 @@ import GHC.Generics
 
 newtype ErrorResponse = ErrorResponse
   { message :: String
-  } deriving (Generic)
+  } deriving (Eq, Generic, Show)
 
 instance ToJSON ErrorResponse

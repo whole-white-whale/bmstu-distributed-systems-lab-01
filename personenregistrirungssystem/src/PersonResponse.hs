@@ -11,6 +11,6 @@ data PersonResponse = PersonResponse
   , age :: Maybe Int
   , address :: Maybe String
   , work :: Maybe String
-  } deriving (Generic)
+  } deriving (Eq, Generic, Show)
 
 instance ToJSON PersonResponse

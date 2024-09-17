@@ -10,6 +10,6 @@ import GHC.Generics
 data ValidationErrorResponse = ValidationErrorResponse
   { message :: String
   , errors :: Map String String
-  } deriving (Generic)
+  } deriving (Eq, Generic, Show)
 
 instance ToJSON ValidationErrorResponse
