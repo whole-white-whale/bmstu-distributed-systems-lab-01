@@ -1,7 +1,7 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Connection (connect) where
+module Connection (Connection, connect) where
 
 import Data.ByteString.Char8 qualified as ByteString
 

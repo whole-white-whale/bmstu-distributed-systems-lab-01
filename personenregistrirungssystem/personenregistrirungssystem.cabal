@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       API
+      Application
       Connection
       Context
       ErrorResponse
@@ -85,6 +86,7 @@ test-suite personenregistrirungssystem-test
     , base >=4.7 && <5
     , bytestring
     , containers
+    , hspec
     , personenregistrirungssystem
     , postgresql-simple
     , servant-server
