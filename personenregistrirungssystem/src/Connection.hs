@@ -1,11 +1,26 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
-module Connection (Connection, connect) where
+module Connection
+  ( Connection
+  , connect
+  , listPersons
+  , createPerson
+  , getPerson
+  , editPerson
+  , deletePerson
+  ) where
 
 import Data.ByteString.Char8 qualified as ByteString
 
 import Database.PostgreSQL.Simple hiding (connect)
+
+import ErrorResponse
+import PersonRequest
+import PersonResponse
 
 connect :: String -> IO Connection
 connect connectionString = do
@@ -16,3 +31,82 @@ connect connectionString = do
     ()
 
   return connection
+
+listPersons :: Connection -> IO [PersonResponse]
+listPersons connection = do
+  response <- query connection
+    "SELECT id, name, age, address, work FROM persons"
+    ()
+
+  return . flip map response $
+    \(personId, personName, personAge, personAddress, personWork) ->
+      PersonResponse
+        { id = personId
+        , name = personName
+        , age = personAge
+        , address = personAddress
+        , work = personWork
+        }
+
+createPerson :: Connection -> PersonRequest -> IO Int
+createPerson connection person = do
+  [Only personId] :: [Only Int] <- query connection
+    "INSERT INTO persons (name, age, address, work) VALUES (?, ?, ?, ?) RETURNING id"
+    ( person.name
+    , person.age
+    , person.address
+    , person.work
+    )
+
+  return personId
+
+getPerson :: Connection -> Int -> IO (Either ErrorResponse PersonResponse)
+getPerson connection personId = do
+  response <- query connection
+    "SELECT name, age, address, work FROM persons WHERE id = ?"
+    [personId]
+
+  case response of
+    [] -> do
+      return . Left $ ErrorResponse "The person does not exist!"
+
+    ((personName, personAge, personAddress, personWork) : _) -> do
+      return . Right $ PersonResponse
+        { id = personId
+        , name = personName
+        , age = personAge
+        , address = personAddress
+        , work = personWork
+        }
+
+editPerson :: Connection -> Int -> PersonRequest -> IO (Either ErrorResponse PersonResponse)
+editPerson connection personId person = do
+  response <- query connection
+    "UPDATE persons SET name = COALESCE(?, name), age = COALESCE(?, age), address = COALESCE(?, address), work = COALESCE(?, work) WHERE id = ? RETURNING name, age, address, work"
+    ( person.name
+    , person.age
+    , person.address
+    , person.work
+    , personId
+    )
+
+  case response of
+    [] -> do
+        return . Left $ ErrorResponse "The person does not exist!"
+
+    ((personName, personAge, personAddress, personWork) : _) -> do
+      return . Right $ PersonResponse
+        { id = personId
+        , name = personName
+        , age = personAge
+        , address = personAddress
+        , work = personWork
+        }
+
+deletePerson :: Connection -> Int -> IO ()
+deletePerson connection personId = do
+  _ <- execute connection
+    "DELETE FROM persons WHERE id = ?"
+    [personId]
+
+  return ()

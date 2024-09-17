@@ -1,19 +1,17 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Server (server) where
 
 import Control.Monad.IO.Class
 
 import Data.Aeson
-import Database.PostgreSQL.Simple
 import Servant
 
 import API
-import ErrorResponse
+import Connection (Connection)
+import Connection qualified as Connection
 import PersonRequest
 import PersonResponse
 
@@ -25,86 +23,44 @@ server connection = listPersons connection
   :<|> deletePerson connection
 
 listPersons :: Connection -> Handler [PersonResponse]
-listPersons connection = do
-  response <- liftIO $ query connection
-    "SELECT id, name, age, address, work FROM persons"
-    ()
-
-  return . flip map response $
-    \(personId, personName, personAge, personAddress, personWork) ->
-      PersonResponse
-        { id = personId
-        , name = personName
-        , age = personAge
-        , address = personAddress
-        , work = personWork
-        }
+listPersons = liftIO . Connection.listPersons
 
 createPerson :: Connection -> PersonRequest -> Handler (Headers '[Header "Location" String] NoContent)
 createPerson connection person = do
-  [Only personId] :: [Only Int] <- liftIO $ query connection
-    "INSERT INTO persons (name, age, address, work) VALUES (?, ?, ?, ?) RETURNING id"
-    ( person.name
-    , person.age
-    , person.address
-    , person.work
-    )
+  personId <- liftIO $ Connection.createPerson connection person
 
   return $ addHeader ("/api/v1/persons/" <> show personId) NoContent
 
 getPerson :: Connection -> Int -> Handler PersonResponse
 getPerson connection personId = do
-  response <- liftIO $ query connection
-    "SELECT name, age, address, work FROM persons WHERE id = ?"
-    [personId]
+  response <- liftIO $ Connection.getPerson connection personId
 
   case response of
-    [] -> do
+    Left errorResponse -> do
       throwError $ err404
-        { errBody = encode $ ErrorResponse "The person does not exist!"
+        { errBody = encode errorResponse
         , errHeaders = [("Content-Type", "application/json")]
         }
 
-    ((personName, personAge, personAddress, personWork) : _) -> do
-      return $ PersonResponse
-        { id = personId
-        , name = personName
-        , age = personAge
-        , address = personAddress
-        , work = personWork
-        }
+    Right personResponse -> do
+      return personResponse
 
 editPerson :: Connection -> Int -> PersonRequest -> Handler PersonResponse
 editPerson connection personId person = do
-  response <- liftIO $ query connection
-    "UPDATE persons SET name = COALESCE(?, name), age = COALESCE(?, age), address = COALESCE(?, address), work = COALESCE(?, work) WHERE id = ? RETURNING name, age, address, work"
-    ( person.name
-    , person.age
-    , person.address
-    , person.work
-    , personId
-    )
+  response <- liftIO $ Connection.editPerson connection personId person
 
   case response of
-    [] -> do
+    Left errorResponse -> do
       throwError $ err404
-        { errBody = encode $ ErrorResponse "The person does not exist!"
+        { errBody = encode errorResponse
         , errHeaders = [("Content-Type", "application/json")]
         }
 
-    ((personName, personAge, personAddress, personWork) : _) -> do
-      return $ PersonResponse
-        { id = personId
-        , name = personName
-        , age = personAge
-        , address = personAddress
-        , work = personWork
-        }
+    Right personResponse -> do
+      return personResponse
 
 deletePerson :: Connection -> Int -> Handler NoContent
 deletePerson connection personId = do
-  _ <- liftIO $ execute connection
-    "DELETE FROM persons WHERE id = ?"
-    [personId]
+  liftIO $ Connection.deletePerson connection personId
 
   return NoContent
